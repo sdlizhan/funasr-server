@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: funasr-server
+  namespace: ai
+  labels:
+    app: funasr-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: funasr-server
+  template:
+    metadata:
+      labels:
+        app: funasr-server
+    spec:
+      containers:
+        - name: funasr-server
+          image: ghcr.io/<your-username>/funasr-server:latest
+          imagePullPolicy: Always
+          command: ["python", "server.py"]
+          args:
+            - "--host"
+            - "0.0.0.0"
+            - "--port"
+            - "10095"
+            - "--language"
+            - "zh"
+            - "--threads"
+            - "4"
+          ports:
+            - name: ws
+              containerPort: 10095
+              protocol: TCP
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+            limits:
+              cpu: "2000m"
+              memory: "1536Mi"
+          # 健康检查
+          livenessProbe:
+            tcpSocket:
+              port: 10095
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            tcpSocket:
+              port: 10095
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: funasr-server
+  namespace: ai
+  labels:
+    app: funasr-server
+spec:
+  type: ClusterIP
+  ports:
+    - name: ws
+      port: 10095
+      targetPort: 10095
+      protocol: TCP
+  selector:
+    app: funasr-server
