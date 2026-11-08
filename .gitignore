@@ -1,0 +1,13 @@
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.bak
+models/
+data/
+logs/
+*.wav
+*.ogg
+.vscode/
+.idea/
